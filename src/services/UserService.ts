@@ -25,8 +25,16 @@ export class UserService {
             email
         }
 
-        this.db.push(user)
-        console.log('DB atualizado', this.db)
+        this.db.push(user);
+    }
+
+    deleleUser = (email:string) => {
+        const obj:number = this.db.findIndex(user => user.email === email);
+        if(obj >= 0){
+            this.db.splice(obj, 1);
+            return
+        }
+        throw new Error("Usuário não encontrado");
     }
 
     getAllUsers = () => {
