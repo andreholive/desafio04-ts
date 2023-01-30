@@ -3,17 +3,23 @@ import { UserService } from '../services/UserService'
 import { Request } from 'express'
 import { makeMockResponse } from "../__mocks__/mockResponse.mock";
 
-describe('UserController', () => {
-    const mockUserService: Partial<UserService> = {
-        createUser: jest.fn(),
-        deleleUser: jest.fn()
+jest.mock('../services/UserService', ()=> {
+    return {
+        UserService: jest.fn().mockImplementation(() => {
+            return {
+                createUser: jest.fn()
+            }
+        })
     }
-    
-    const userController = new UserController(mockUserService as UserService);
+});
+
+describe('UserController', () => {
+    const userController = new UserController();
     const mockRequest = {
         body: {
             name: 'Nath',
-            email: 'nath@test.com'
+            email: 'nath@test.com',
+            password: '123456'
         }
     } as Request
     
@@ -21,7 +27,8 @@ describe('UserController', () => {
         const mockRequest = {
             body: {
                 name: '',
-                email: 'nath@test.com'
+                email: 'nath@test.com',
+                password: '123456'
             }
         } as Request
         const mockResponse = makeMockResponse()
@@ -34,7 +41,8 @@ describe('UserController', () => {
         const mockRequest = {
             body: {
                 name: 'Nath',
-                email: ''
+                email: '',
+                password: '123456'
             }
         } as Request
         const mockResponse = makeMockResponse()
@@ -42,6 +50,20 @@ describe('UserController', () => {
         expect(mockResponse.state.status).toBe(400)
         expect(mockResponse.state.json).toMatchObject({ message: 'Necessário o email' })
     });
+
+    it('Dever retornar um erro ao não passar o password', () => {
+        const mockRequest = {
+            body: {
+                name: 'Nath',
+                email: 'andreolive@live.com',
+                password: ''
+            }
+        } as Request
+        const mockResponse = makeMockResponse()
+        userController.createUser(mockRequest, mockResponse)
+        expect(mockResponse.state.status).toBe(400)
+        expect(mockResponse.state.json).toMatchObject({ message: 'Necessário a senha' })
+    })
 
     it('Deve adicionar um novo usuário', () => {
         const mockResponse = makeMockResponse()

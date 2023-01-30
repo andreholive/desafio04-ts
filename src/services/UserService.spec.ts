@@ -1,28 +1,30 @@
-import { User, UserService } from "./UserService";
+import { UserService } from "./UserService";
+
+jest.mock("../repositories/UserRepository");
+jest.mock("../database", () => {
+    initialize: jest.fn();
+});
+
+const mockUserRepository = require("../repositories/UserRepository")
 
 describe('UserService', () => {
-    const mockDb: User[] = []
-    const userService = new UserService(mockDb);
+    
+    const userService = new UserService(mockUserRepository)
+    const userData = {
+        id_user: '123456',
+        name: 'nath',
+        email: 'nath@test.com',
+        password: '123456'
+    }
 
-    it('Deve adicionar um novo usuário', () => {
-        const mockPush = jest.spyOn(mockDb, 'push')
-        userService.createUser('nath', 'nath@test.com');
-        expect(mockPush).toHaveBeenCalledWith({name:'nath',email:'nath@test.com'})
+    it('Deve adicionar um novo usuário', async () => {
+        mockUserRepository.createUser = jest.fn().mockImplementation(() => Promise.resolve(userData));
+
+        const response = await userService.createUser('nath', 'nath@test.com', '12345');
+        expect(mockUserRepository.createUser).toHaveBeenCalled();
+        expect(response).toMatchObject(userData)
+        
     });
 
-    it('Não Deve remover um usuário com um email que não existe na base de dados', () => {
-        mockDb.splice = jest.fn();
-        try {
-            userService.deleleUser('andreolive@live.com');
-        } catch (error) {
-            
-        }
-        expect(mockDb.splice).not.toHaveBeenCalled();
-    })
-
-    it('Deve remover um usuário pelo email informado', () => {
-        mockDb.splice = jest.fn();
-        userService.deleleUser('nath@test.com');
-        expect(mockDb.splice).toHaveBeenCalled();
-    })
+    
 })
